@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Estadísticas – AHPC Civil 4°{% endblock %}
+{% block body %}
+<div class="container">
+  <div class="page-title">Estadísticas <small>Juzgado Civil 4° Nominación</small></div>
+
+  <!-- Resumen -->
+  <div class="stats-grid" style="margin-bottom:1.5rem">
+    <div class="stat-card">
+      <div class="num">{{ "{:,}".format(total).replace(",",".") }}</div>
+      <div class="lbl">Total expedientes</div>
+    </div>
+    <div class="stat-card">
+      <div class="num">{{ total_causas }}</div>
+      <div class="lbl">Tipos de causa</div>
+    </div>
+    <div class="stat-card">
+      <div class="num">{{ total_legajos }}</div>
+      <div class="lbl">Legajos</div>
+    </div>
+  </div>
+
+  <!-- Décadas -->
+  <div class="card" style="margin-bottom:1.5rem">
+    <div style="font-size:1rem;font-weight:600;color:var(--accent2);margin-bottom:1rem">Expedientes por década</div>
+    {% set max_d = por_decada|map(attribute='total')|max %}
+    {% for d in por_decada %}
+    <div class="bar-row">
+      <span class="bar-lbl">{{ d.decada }}s</span>
+      <div class="bar-fill" style="width:{{ (d.total / max_d * 350)|int }}px"></div>
+      <span class="bar-val">{{ d.total }}</span>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Top causas -->
+  <div class="card">
+    <div style="font-size:1rem;font-weight:600;color:var(--accent2);margin-bottom:1rem">Top 30 causas</div>
+    {% set max_c = top_causas[0].total if top_causas else 1 %}
+    {% for c in top_causas %}
+    <div class="bar-row">
+      <a href="/causa/{{ c.causa|urlencode }}" class="bar-lbl" title="{{ c.causa }}">{{ c.causa }}</a>
+      <div class="bar-fill" style="width:{{ (c.total / max_c * 350)|int }}px"></div>
+      <span class="bar-val">{{ c.total }}</span>
+    </div>
+    {% endfor %}
+  </div>
+
+</div>
+{% endblock %}

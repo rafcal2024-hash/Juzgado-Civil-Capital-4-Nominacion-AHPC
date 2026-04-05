@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}{{ reg.partes }} – AHPC Civil 4°{% endblock %}
+{% block body %}
+<div class="container">
+  <div style="margin-bottom:1rem">
+    <a href="/buscar" style="color:var(--muted);font-size:.88rem">← Volver a resultados</a>
+  </div>
+
+  <div class="card" style="margin-bottom:1.2rem">
+    <div style="font-size:1.15rem;font-weight:700;color:var(--accent2);margin-bottom:1rem">
+      {{ reg.partes or '—' }}
+    </div>
+    <div class="detail-grid">
+      <div class="detail-item"><div class="key">Año</div><div class="val">{{ reg.anio or '—' }}</div></div>
+      <div class="detail-item"><div class="key">Legajo</div><div class="val">{{ reg.legajo or '—' }}</div></div>
+      <div class="detail-item"><div class="key">Expediente</div><div class="val">{{ reg.expediente or '—' }}</div></div>
+      <div class="detail-item">
+        <div class="key">Causa</div>
+        <div class="val">
+          <a href="/causa/{{ reg.causa|urlencode }}" class="badge badge-causa">{{ reg.causa or '—' }}</a>
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:1rem;font-size:.8rem;color:var(--muted)">
+      Serie: Juzgado Civil Capital 4° Nominación · AHPC-PJ
+    </div>
+  </div>
+
+  {% if otros_partes %}
+  <div class="card">
+    <div style="font-size:1rem;font-weight:600;color:var(--accent2);margin-bottom:.8rem">
+      Otros expedientes con apellido <em>{{ apellido }}</em>
+      <span class="badge" style="margin-left:.5rem">{{ otros_partes|length }}</span>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Año</th><th>Legajo</th><th>Expte.</th><th>Partes</th><th>Causa</th></tr></thead>
+        <tbody>
+          {% for r in otros_partes %}
+          <tr>
+            <td>{{ r.anio or '' }}</td>
+            <td>{{ r.legajo or '' }}</td>
+            <td>{{ r.expediente or '' }}</td>
+            <td><a href="/detalle/{{ r.id }}">{{ r.partes }}</a></td>
+            <td><a href="/causa/{{ r.causa|urlencode }}" class="badge badge-causa">{{ r.causa or '' }}</a></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

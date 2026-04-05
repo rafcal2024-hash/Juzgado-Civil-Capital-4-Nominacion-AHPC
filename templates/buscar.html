@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+{% block title %}Buscar – AHPC Civil 4°{% endblock %}
+{% block body %}
+<div class="container">
+  <div class="page-title">Búsqueda de expedientes <small>Juzgado Civil 4° Nominación</small></div>
+
+  <!-- FILTROS -->
+  <div class="card" style="margin-bottom:1.2rem">
+    <div class="form-grid" id="form-busqueda">
+      <div class="form-group">
+        <label>Partes (apellido/nombre)</label>
+        <div class="ac-wrap">
+          <input id="f-partes" type="text" placeholder="Ej: García, Rodríguez…" value="{{ partes_pre }}" autocomplete="off">
+          <div class="ac-list" id="ac-partes"></div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Causa</label>
+        <div class="ac-wrap">
+          <input id="f-causa" type="text" placeholder="Ej: Declaratoria, Demanda…" value="{{ causa_pre }}" autocomplete="off">
+          <div class="ac-list" id="ac-causa"></div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Año desde</label>
+        <input id="f-anio-desde" type="number" placeholder="1898" min="1898" max="1934">
+      </div>
+      <div class="form-group">
+        <label>Año hasta</label>
+        <input id="f-anio-hasta" type="number" placeholder="1934" min="1898" max="1934">
+      </div>
+      <div class="form-group">
+        <label>Legajo</label>
+        <input id="f-legajo" type="text" placeholder="Nº legajo">
+      </div>
+      <div class="form-group">
+        <label>Expediente</label>
+        <input id="f-expediente" type="text" placeholder="Nº expediente">
+      </div>
+      <div class="form-group">
+        <label>Texto libre (FTS)</label>
+        <input id="f-texto" type="text" placeholder="Búsqueda en partes y causas…">
+      </div>
+    </div>
+    <div style="display:flex;gap:.6rem;margin-top:1rem;flex-wrap:wrap;align-items:center">
+      <button class="btn" onclick="buscar(1)">🔍 Buscar</button>
+      <button class="btn btn-outline" onclick="limpiar()">Limpiar</button>
+      <button class="btn btn-outline btn-sm" onclick="exportarPDF()">⬇ Exportar PDF</button>
+      <span id="total-info" class="result-info" style="margin-left:.5rem"></span>
+    </div>
+  </div>
+
+  <!-- RESULTADOS -->
+  <div class="tbl-wrap">
+    <table id="tabla">
+      <thead>
+        <tr>
+          <th>Año</th><th>Legajo</th><th>Expte.</th>
+          <th>Partes</th><th>Causa</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+  <div class="pagination" id="paginacion"></div>
+</div>
+
+<script>
+let _page=1, _total=0, _perPage=50;
+const $ = id => document.getElementById(id);
+
+function vals(){
+  return {
+    partes:    $('f-partes').value.trim(),
+    causa:     $('f-causa').value.trim(),
+    anio_desde:$('f-anio-desde').value.trim(),
+    anio_hasta:$('f-anio-hasta').value.trim(),
+    legajo:    $('f-legajo').value.trim(),
+    expediente:$('f-expediente').value.trim(),
+    texto:     $('f-texto').value.trim(),
+  };
+}
+
+function buscar(p=1){
+  _page=p;
+  const v=vals();
+  const q=new URLSearchParams({...v,page:p});
+  fetch('/api/buscar?'+q)
+    .then(r=>r.json())
+    .then(d=>{
+      _total=d.total; _perPage=d.per_page;
+      $('total-info').innerHTML=`<strong>${d.total.toLocaleString('es')}</strong> resultado${d.total!==1?'s':''}`;
+      const tb=$('tbody'); tb.innerHTML='';
+      if(!d.registros.length){
+        tb.innerHTML='<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--muted)">Sin resultados</td></tr>';
+        $('paginacion').innerHTML=''; return;
+      }
+      d.registros.forEach(r=>{
+        const tr=document.createElement('tr');
+        tr.innerHTML=`
+          <td>${r.anio||''}</td>
+          <td>${r.legajo||''}</td>
+          <td>${r.expediente||''}</td>
+          <td><a href="/detalle/${r.id}">${esc(r.partes||'')}</a></td>
+          <td><a href="/causa/${encodeURIComponent(r.causa||'')}" class="badge badge-causa">${esc(r.causa||'')}</a></td>`;
+        tb.appendChild(tr);
+      });
+      renderPag(d.total, d.page, d.per_page);
+    });
+}
+
+function renderPag(total,page,per){
+  const pages=Math.ceil(total/per);
+  if(pages<=1){$('paginacion').innerHTML='';return;}
+  let h='';
+  h+=`<button onclick="buscar(${page-1})" ${page<=1?'disabled':''}>‹</button>`;
+  let start=Math.max(1,page-3), end=Math.min(pages,page+3);
+  if(start>1) h+=`<button onclick="buscar(1)">1</button>${start>2?'<span class="info">…</span>':''}`;
+  for(let i=start;i<=end;i++)
+    h+=`<button onclick="buscar(${i})" class="${i===page?'active':''}">${i}</button>`;
+  if(end<pages) h+=`${end<pages-1?'<span class="info">…</span>':''}<button onclick="buscar(${pages})">${pages}</button>`;
+  h+=`<button onclick="buscar(${page+1})" ${page>=pages?'disabled':''}>›</button>`;
+  h+=`<span class="info">Pág. ${page} de ${pages}</span>`;
+  $('paginacion').innerHTML=h;
+}
+
+function limpiar(){
+  ['f-partes','f-causa','f-anio-desde','f-anio-hasta','f-legajo','f-expediente','f-texto']
+    .forEach(id=>$(id).value='');
+  $('tbody').innerHTML=''; $('paginacion').innerHTML=''; $('total-info').innerHTML='';
+}
+
+function exportarPDF(){
+  const v=vals();
+  const q=new URLSearchParams(v);
+  window.open('/api/exportar-pdf?'+q,'_blank');
+}
+
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+// Autocomplete helper
+function setupAC(inputId, listId, url, key){
+  const inp=$(inputId), lst=$(listId);
+  let timer, idx=-1;
+  inp.addEventListener('input', ()=>{
+    clearTimeout(timer);
+    const q=inp.value.trim();
+    if(q.length<2){lst.style.display='none';return;}
+    timer=setTimeout(()=>{
+      fetch(url+'?q='+encodeURIComponent(q))
+        .then(r=>r.json()).then(data=>{
+          if(!data.length){lst.style.display='none';return;}
+          lst.innerHTML=data.map((d,i)=>
+            `<div class="ac-item" data-val="${esc(d[key])}">${esc(d[key])}<span class="ac-count">${d.total}</span></div>`
+          ).join('');
+          lst.style.display='block'; idx=-1;
+          lst.querySelectorAll('.ac-item').forEach(el=>{
+            el.addEventListener('mousedown',e=>{e.preventDefault();inp.value=el.dataset.val;lst.style.display='none';buscar(1);});
+          });
+        });
+    },200);
+  });
+  inp.addEventListener('keydown',e=>{
+    const items=lst.querySelectorAll('.ac-item');
+    if(e.key==='ArrowDown'){idx=Math.min(idx+1,items.length-1);items.forEach((el,i)=>el.classList.toggle('active',i===idx));}
+    else if(e.key==='ArrowUp'){idx=Math.max(idx-1,0);items.forEach((el,i)=>el.classList.toggle('active',i===idx));}
+    else if(e.key==='Enter'){
+      if(idx>=0&&items[idx]){inp.value=items[idx].dataset.val;lst.style.display='none';}
+      buscar(1);
+    }
+    else if(e.key==='Escape'){lst.style.display='none';}
+  });
+  document.addEventListener('click',e=>{if(!inp.contains(e.target)&&!lst.contains(e.target))lst.style.display='none';});
+}
+
+setupAC('f-partes','ac-partes','/api/partes-autocomplete','partes');
+setupAC('f-causa','ac-causa','/api/causas-autocomplete','causa');
+
+// Enter key en cualquier campo dispara búsqueda
+document.querySelectorAll('#form-busqueda input').forEach(el=>{
+  el.addEventListener('keydown',e=>{if(e.key==='Enter')buscar(1);});
+});
+
+// Prellenar si vienen params por URL
+(function(){
+  const url=new URL(location.href);
+  if(url.searchParams.get('partes')) $('f-partes').value=url.searchParams.get('partes');
+  if(url.searchParams.get('causa'))  $('f-causa').value=url.searchParams.get('causa');
+  if($('f-partes').value||$('f-causa').value) buscar(1);
+})();
+</script>
+{% endblock %}

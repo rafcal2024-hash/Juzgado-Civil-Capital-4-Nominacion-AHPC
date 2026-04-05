@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block title %}Inicio – AHPC Juzgado Civil 4° Nominación{% endblock %}
+{% block body %}
+<div class="container" style="padding-top:2rem">
+
+  <div style="text-align:center;margin-bottom:2rem">
+    <div style="font-size:.8rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.4rem">
+      Archivo Histórico de la Provincia de Córdoba
+    </div>
+    <h1 style="font-size:2rem;font-weight:800;color:var(--accent2);line-height:1.2">
+      Juzgado Civil Capital<br>4° Nominación
+    </h1>
+    <p style="color:var(--muted);margin-top:.6rem;font-size:.95rem">
+      Índice onomástico de expedientes judiciales · {{ anio_inicio }}–{{ anio_fin }}
+    </p>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="num">{{ "{:,}".format(total).replace(",",".") }}</div>
+      <div class="lbl">Expedientes indexados</div>
+    </div>
+    <div class="stat-card">
+      <div class="num">{{ anio_inicio }}</div>
+      <div class="lbl">Año inicial</div>
+    </div>
+    <div class="stat-card">
+      <div class="num">{{ anio_fin }}</div>
+      <div class="lbl">Año final</div>
+    </div>
+    <div class="stat-card">
+      <div class="num">{{ causas }}</div>
+      <div class="lbl">Tipos de causa</div>
+    </div>
+  </div>
+
+  <!-- Quick search -->
+  <div class="card" style="margin-bottom:1.5rem">
+    <div style="font-size:1rem;font-weight:600;color:var(--accent2);margin-bottom:.8rem">🔍 Búsqueda rápida</div>
+    <form action="/buscar" method="get" style="display:flex;gap:.6rem;flex-wrap:wrap;align-items:flex-end">
+      <div style="flex:1;min-width:200px">
+        <input type="text" name="partes" placeholder="Nombre o apellido de las partes…" style="width:100%">
+      </div>
+      <button type="submit" class="btn">Buscar</button>
+    </form>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;flex-wrap:wrap">
+
+    <!-- Top causas -->
+    <div class="card">
+      <div style="font-size:1rem;font-weight:600;color:var(--accent2);margin-bottom:1rem">Causas más frecuentes</div>
+      {% set max_t = top_causas[0].t if top_causas else 1 %}
+      {% for c in top_causas %}
+      <div class="bar-row">
+        <a href="/causa/{{ c.causa|urlencode }}" class="bar-lbl" title="{{ c.causa }}">{{ c.causa }}</a>
+        <div class="bar-fill" style="width:{{ (c.t / max_t * 240)|int }}px"></div>
+        <span class="bar-val">{{ c.t }}</span>
+      </div>
+      {% endfor %}
+      <div style="margin-top:.8rem">
+        <a href="/estadisticas" style="font-size:.82rem;color:var(--muted)">Ver todas →</a>
+      </div>
+    </div>
+
+    <!-- Distribución por décadas -->
+    <div class="card">
+      <div style="font-size:1rem;font-weight:600;color:var(--accent2);margin-bottom:.5rem">Distribución por décadas</div>
+      {% set max_d = por_decada|map(attribute='t')|max %}
+      <div class="decade-bar">
+        {% for d in por_decada %}
+        <div class="dec-col">
+          <div class="dec-val">{{ d.t }}</div>
+          <div class="dec-fill" style="height:{{ (d.t / max_d * 100)|int }}px"></div>
+          <div class="dec-lbl">{{ d.decada }}s</div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Cause pills -->
+  <div class="card" style="margin-top:1.5rem">
+    <div style="font-size:1rem;font-weight:600;color:var(--accent2);margin-bottom:.5rem">Explorar por causa</div>
+    <div class="causes-grid">
+      {% for c in top_causas %}
+      <a href="/causa/{{ c.causa|urlencode }}" class="cause-pill">
+        {{ c.causa }}<span class="cnt">{{ c.t }}</span>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+
+</div>
+{% endblock %}

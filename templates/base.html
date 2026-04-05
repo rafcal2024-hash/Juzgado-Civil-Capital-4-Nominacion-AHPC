@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}AHPC – Juzgado Civil 4° Nominación{% endblock %}</title>
+<style>
+:root{
+  --bg:#0f0a1a; --surface:#1a1030; --surface2:#251840;
+  --accent:#9b59d0; --accent2:#c89af0; --accent3:#6c3a9e;
+  --text:#e8dff8; --muted:#9a87b8; --border:#3a2860;
+  --row1:#fff; --row2:#f5f0ff;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;min-height:100vh}
+a{color:var(--accent2);text-decoration:none}
+a:hover{text-decoration:underline;color:#fff}
+
+/* NAV */
+nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 1.5rem;display:flex;align-items:center;gap:1.5rem;height:54px;position:sticky;top:0;z-index:100}
+.nav-brand{font-size:1rem;font-weight:700;color:var(--accent2);white-space:nowrap}
+.nav-brand span{color:var(--muted);font-weight:400;font-size:.85rem}
+nav a{color:var(--muted);font-size:.9rem;padding:.3rem .5rem;border-radius:4px;transition:.15s}
+nav a:hover,nav a.active{color:var(--text);background:var(--surface2);text-decoration:none}
+
+/* LAYOUT */
+.container{max-width:1200px;margin:0 auto;padding:1.5rem}
+.page-title{font-size:1.5rem;font-weight:700;margin-bottom:1rem;color:var(--accent2)}
+.page-title small{font-size:.85rem;color:var(--muted);font-weight:400;margin-left:.5rem}
+
+/* CARDS */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1.25rem}
+
+/* STAT CARDS */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;margin-bottom:1.5rem}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1.2rem;text-align:center}
+.stat-card .num{font-size:2rem;font-weight:800;color:var(--accent2);line-height:1}
+.stat-card .lbl{font-size:.8rem;color:var(--muted);margin-top:.3rem}
+
+/* TABLE */
+.tbl-wrap{overflow-x:auto;border-radius:8px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:.88rem}
+thead th{background:var(--surface2);color:var(--accent2);padding:.7rem .9rem;text-align:left;font-weight:600;white-space:nowrap;border-bottom:1px solid var(--border)}
+tbody tr:nth-child(even){background:#18102a}
+tbody tr:hover{background:#2a1f42}
+tbody td{padding:.65rem .9rem;border-bottom:1px solid #1e1535;vertical-align:top}
+tbody tr:last-child td{border-bottom:none}
+
+/* BADGES */
+.badge{display:inline-block;background:var(--surface2);border:1px solid var(--border);color:var(--muted);border-radius:20px;padding:.2rem .65rem;font-size:.78rem}
+.badge-causa{background:#2a1848;border-color:#5a3898;color:var(--accent2)}
+
+/* FORM */
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:.8rem}
+.form-group{display:flex;flex-direction:column;gap:.35rem}
+.form-group label{font-size:.8rem;color:var(--muted);font-weight:500}
+input,select{background:#150f28;border:1px solid var(--border);color:var(--text);padding:.5rem .75rem;border-radius:6px;font-size:.9rem;outline:none;width:100%;transition:.15s}
+input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 2px #6c3a9e44}
+.btn{background:var(--accent3);color:#fff;border:none;padding:.55rem 1.2rem;border-radius:6px;cursor:pointer;font-size:.9rem;font-weight:600;transition:.15s}
+.btn:hover{background:var(--accent)}
+.btn-sm{padding:.3rem .8rem;font-size:.8rem}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--muted)}
+.btn-outline:hover{border-color:var(--accent);color:var(--accent2);background:var(--surface2)}
+
+/* AUTOCOMPLETE */
+.ac-wrap{position:relative}
+.ac-list{position:absolute;top:100%;left:0;right:0;background:#1e1535;border:1px solid var(--border);border-radius:0 0 6px 6px;z-index:50;max-height:220px;overflow-y:auto;display:none}
+.ac-item{padding:.5rem .75rem;cursor:pointer;font-size:.88rem;border-bottom:1px solid #1e1535}
+.ac-item:hover,.ac-item.active{background:#2a1f42;color:#fff}
+.ac-count{font-size:.75rem;color:var(--muted);float:right}
+
+/* PAGINATION */
+.pagination{display:flex;gap:.4rem;align-items:center;margin-top:1rem;flex-wrap:wrap}
+.pagination button{background:var(--surface2);border:1px solid var(--border);color:var(--muted);padding:.35rem .75rem;border-radius:5px;cursor:pointer;font-size:.85rem}
+.pagination button:hover:not(:disabled){background:var(--accent3);color:#fff;border-color:var(--accent)}
+.pagination button.active{background:var(--accent3);color:#fff;border-color:var(--accent)}
+.pagination button:disabled{opacity:.4;cursor:default}
+.pagination .info{color:var(--muted);font-size:.85rem;margin:0 .5rem}
+
+/* PILLS causes */
+.causes-grid{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.8rem}
+.cause-pill{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.35rem .9rem;border-radius:20px;font-size:.82rem;cursor:pointer;transition:.15s}
+.cause-pill:hover{background:var(--accent3);border-color:var(--accent);color:#fff;text-decoration:none}
+.cause-pill .cnt{font-size:.75rem;color:var(--muted);margin-left:.3rem}
+
+/* BAR CHART */
+.bar-row{display:flex;align-items:center;gap:.6rem;margin:.3rem 0;font-size:.82rem}
+.bar-row .bar-lbl{width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--muted);text-align:right}
+.bar-row .bar-fill{height:18px;background:linear-gradient(90deg,var(--accent3),var(--accent));border-radius:3px;min-width:2px;transition:.3s}
+.bar-row .bar-val{color:var(--accent2);min-width:40px}
+
+/* SEARCH RESULT COUNT */
+.result-info{color:var(--muted);font-size:.88rem;margin-bottom:.8rem}
+.result-info strong{color:var(--text)}
+
+/* HIGHLIGHT */
+mark{background:#5a3898;color:#fff;border-radius:2px;padding:0 2px}
+
+/* DETAIL PAGE */
+.detail-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:.8rem;margin-bottom:1rem}
+.detail-item .key{font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.detail-item .val{font-size:1rem;color:var(--text);margin-top:.15rem}
+
+/* DECADE CHART */
+.decade-bar{display:flex;align-items:flex-end;gap:4px;height:120px;margin-top:.5rem}
+.dec-col{display:flex;flex-direction:column;align-items:center;gap:2px;flex:1}
+.dec-fill{background:linear-gradient(180deg,var(--accent),var(--accent3));border-radius:3px 3px 0 0;width:100%;min-height:2px;transition:.3s}
+.dec-lbl{font-size:.65rem;color:var(--muted)}
+.dec-val{font-size:.65rem;color:var(--accent2)}
+</style>
+</head>
+<body>
+<nav>
+  <span class="nav-brand">AHPC <span>Juzgado Civil 4°</span></span>
+  <a href="/" {% if request.endpoint=='index' %}class="active"{% endif %}>Inicio</a>
+  <a href="/buscar" {% if request.endpoint=='buscar' %}class="active"{% endif %}>Buscar</a>
+  <a href="/estadisticas" {% if request.endpoint=='estadisticas' %}class="active"{% endif %}>Estadísticas</a>
+</nav>
+{% block body %}{% endblock %}
+</body>
+</html>
